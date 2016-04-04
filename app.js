@@ -23,15 +23,32 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.engine('html', swig.renderFile);
 app.use(session({ secret: 'keyboard cat', key: 'sid'}));
 
+
+app.use(cookieParser());
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.get('/', function(req, res){
+   
   res.render(path.join(__dirname + '/view/index.html'),obj);
 });
 
 app.get('/viewallblogs', function(req, res){
+     console.log(req.session.user);
   BlogModel.selectAllBlog(req, res, function(obj) {
      res.json(obj);
   });
 });
+
+app.get('/usersession', function(req, res){
+     if(req.session.user){
+        res.json(req.session.user);
+     }     
+    else{
+        res.json("");
+    }
+});
+
 
 app.get('/viewcategories', function(req, res){
   CategoryModel.selectAllCetegories(req, res, function(obj) {
@@ -51,9 +68,6 @@ app.get('/viewoverallblogs', function(req, res){
   });
 });
 
-app.use(cookieParser());
-app.use(passport.initialize());
-app.use(passport.session());
 
 passport.serializeUser(function(user, done) {
   done(null, user);
@@ -95,12 +109,7 @@ app.get('/checkLoggedIn', function(req, res){
   
 });
 
-
-
-
-
 app.get('/account', ensureAuthenticated, function(req, res){
-    console.log(req.user);
   res.render('account', { user: req.user });
 });
 
@@ -110,11 +119,13 @@ app.get('/auth/facebook', passport.authenticate('facebook',{ scope: ['email', 'u
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   function(req, res) {
-   console.log(req.user);
+    req.session.user = req.user;
+  // console.log(req.session.user);
    res.redirect('/');
   });
 
 app.get('/logout', function(req, res){
+  req.session.destroy();
   req.logout();
   res.redirect('/');
 });

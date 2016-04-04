@@ -39,9 +39,8 @@
                         </div>
                     </div>
                     <div class="col-lg-2 col-md-2 col-sm-12 dv-member">
-                        <a href="/auth/facebook" class="btn btn-default btn-login">I Need to Register</a>
-                        <a href="" class="btn btn-default btn-register">I am a Member</a>
-
+                        <a href="/auth/facebook" class="btn btn-default btn-login" data-bind="text:f_login, attr:{data_login:l_status, href:l_url}">Login with Facebook</a>
+                        
                     </div>
                 </div>
 
@@ -202,6 +201,22 @@
         self.categories = ko.observableArray([]);
         self.allblogs = ko.observableArray([]);
         self.querySearch = ko.observable("");
+        self.f_login = ko.observable();
+        self.l_status = ko.observable();
+        self.l_url = ko.observable();
+        
+        $.getJSON("http://localhost:5000/usersession", function(data){
+            if(data.displayName != undefined){
+                self.f_login(data.displayName);
+                self.l_url='/logout';
+                self.l_status(1);
+            }
+            else{
+                self.f_login("Facebook Login");
+                self.l_url='/auth/facebook';
+                self.l_status(0);
+            }
+        });
         
         $.getJSON("http://localhost:5000/viewallblogs", function(data){
             self.blogs(data);
